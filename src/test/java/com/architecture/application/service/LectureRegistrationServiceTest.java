@@ -5,25 +5,35 @@ import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.architecture.application.repository.LectureRegistrationRepository;
 import com.architecture.domain.entity.LectureRegistration;
 import com.architecture.domain.entity.SpecialLecture;
+import com.architecture.infrastructure.repository.LectureRepository;
 
 public class LectureRegistrationServiceTest {
 	private LectureRegistrationService lectureRegistrationService;
 	private LectureRegistrationRepository lectureRegistrationRepository;
+	private LectureRepository lectureRepository;
 
 	@BeforeEach
 	public void setUp() {
 		lectureRegistrationRepository = Mockito.mock(LectureRegistrationRepository.class);
-		lectureRegistrationService = new LectureRegistrationService(lectureRegistrationRepository);
+		lectureRepository = Mockito.mock(LectureRepository.class);  // lectureRepository를 Mock으로 초기화
+		lectureRegistrationService = new LectureRegistrationService(lectureRegistrationRepository, lectureRepository);
 	}
+
 	@DisplayName("수강신청 테스트_기본")
 	@Test
 	public void testRegisterLecture() throws Exception {
@@ -109,8 +119,8 @@ public class LectureRegistrationServiceTest {
 
 		// Mock 설정: 해당 날짜에 열리는 특강 목록 반환
 		List<SpecialLecture> expectedLectures = Arrays.asList(
-			new SpecialLecture("lecture1", "특강 1", date),
-			new SpecialLecture("lecture2", "특강 2", date)
+			new SpecialLecture("lecture1", "특강 1", date, "111111"),
+			new SpecialLecture("lecture2", "특강 2", date, "222222")
 		);
 		when(lectureRegistrationRepository.getLecturesByDate(date)).thenReturn(expectedLectures);
 
@@ -119,6 +129,55 @@ public class LectureRegistrationServiceTest {
 		assertEquals(2, lectures.size());
 		assertEquals("특강 1", lectures.get(0).getLectureName());
 		assertEquals("특강 2", lectures.get(1).getLectureName());
+	}
+
+	@Nested
+	@DisplayName("동시성 테스트")
+	class ConcurrencyTests {
+
+		private static final Logger logger = LoggerFactory.getLogger(ConcurrencyTests.class);  // Logger 추가
+
+		@BeforeEach
+		public void setUp() {
+			logger.info("동시성 테스트를 위한 환경 설정 중...");
+			lectureRegistrationService = new LectureRegistrationService(lectureRegistrationRepository, lectureRepository);
+			SpecialLecture lecture = new SpecialLecture("lecture1", "강의1", "2024-10-03", "강사1");
+			lectureRepository.save(lecture);
+			logger.info("특강 {}을 DB에 저장했습니다.", lecture.getLectureId());
+		}
+
+		@Test
+		@DisplayName("수강신청 테스트_동시성 테스트")
+		public void testLectureRegistrationConcurrency() throws InterruptedException {
+			String lectureId = "lecture1";
+			int numberOfThreads = 50;
+			ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+			CountDownLatch latch = new CountDownLatch(numberOfThreads);
+
+			logger.info("동시성 테스트 시작: {}명의 사용자", numberOfThreads);
+
+			for (int i = 0; i < numberOfThreads; i++) {
+				final int userId = i;
+				executorService.submit(() -> {
+					try {
+						logger.info("유저 {}가 특강 {}에 신청 시도 중", userId, lectureId);
+						LectureRegistration lectureRegistration = new LectureRegistration(String.valueOf(userId), lectureId);
+						lectureRegistrationService.registerLecture(lectureRegistration);
+					} catch (Exception e) {
+						logger.error("유저 {}가 특강 {}에 신청 중 예외 발생: {}", userId, lectureId, e.getMessage());
+					} finally {
+						latch.countDown();
+					}
+				});
+			}
+
+			latch.await();
+			logger.info("동시성 테스트 완료");
+
+			long registrationCount = lectureRegistrationRepository.getRegistrationCount(lectureId);
+			logger.info("최종 특강 {} 신청 인원: {}", lectureId, registrationCount);
+			assertEquals(30, registrationCount, "동시에 신청한 사용자 수는 30명을 초과할 수 없습니다.");
+		}
 	}
 
 }

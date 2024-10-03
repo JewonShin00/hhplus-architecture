@@ -45,4 +45,9 @@ public class LectureRegistrationRepositoryImpl implements LectureRegistrationRep
 		// 실제 구현체 작성
 		return null;
 	}
+
+	@Override
+	public void deleteAll() {
+
+	}
 }

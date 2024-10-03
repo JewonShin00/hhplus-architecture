@@ -15,4 +15,5 @@ public interface LectureRegistrationRepository {
 
 	List<SpecialLecture> getLecturesByDate(String date);
 
+	void deleteAll();
 }

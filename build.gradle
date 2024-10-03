@@ -28,6 +28,12 @@ dependencies {
 
     // Mockito 의존성 추가
     testImplementation 'org.mockito:mockito-core:4.2.0'
+
+    // SLF4J 로거 의존성 추가
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+
+    // 로그백 (Logback) - SLF4J를 위한 구현체
+    implementation 'ch.qos.logback:logback-classic:1.2.10'
 }
 
 test {
