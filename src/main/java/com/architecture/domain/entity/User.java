@@ -1,4 +1,4 @@
-package com.domain.entity;
+package com.architecture.domain.entity;
 
 public class User {
 	private String userId;    // 유저ID

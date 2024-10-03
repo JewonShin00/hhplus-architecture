@@ -1,4 +1,4 @@
-package com.application.service;
+package com.architecture.application.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -11,9 +11,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.application.repository.LectureRegistrationRepository;
-import com.domain.entity.LectureRegistration;
-import com.domain.entity.SpecialLecture;
+import com.architecture.application.repository.LectureRegistrationRepository;
+import com.architecture.domain.entity.LectureRegistration;
+import com.architecture.domain.entity.SpecialLecture;
 
 public class LectureRegistrationServiceTest {
 	private LectureRegistrationService lectureRegistrationService;

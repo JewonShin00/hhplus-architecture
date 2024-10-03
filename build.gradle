@@ -11,6 +11,10 @@ repositories {
     mavenCentral()
 }
 
+// Java 버전 설정
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
 dependencies {
     // Spring Boot 및 JPA 관련 의존성
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

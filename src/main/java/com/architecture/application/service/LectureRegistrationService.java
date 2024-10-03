@@ -1,15 +1,18 @@
-package com.application.service;
+package com.architecture.application.service;
 
 import java.util.List;
 
-import com.application.repository.LectureRegistrationRepository;
-import com.domain.entity.LectureRegistration;
-import com.domain.entity.SpecialLecture;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import com.architecture.application.repository.LectureRegistrationRepository;
+import com.architecture.domain.entity.LectureRegistration;
+import com.architecture.domain.entity.SpecialLecture;
+@Service
 public class LectureRegistrationService {
 
 	private final LectureRegistrationRepository lectureRegistrationRepository;
-
+	@Autowired
 	public LectureRegistrationService(LectureRegistrationRepository lectureRegistrationRepository) {
 		this.lectureRegistrationRepository = lectureRegistrationRepository;
 	}
